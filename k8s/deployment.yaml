@@ -25,6 +25,8 @@ spec:
         prometheus.io/path: /actuator/prometheus
         prometheus.io/port: "8080"
     spec:
+      imagePullSecrets:
+        - name: regcred
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001
