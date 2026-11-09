@@ -103,7 +103,7 @@ pipeline {
         stage('Container Build') {
             when { environment name: 'ROLLBACK', value: 'false' }
             steps {
-                sh 'docker build -t ${IMAGE}:${VERSION} --label git-commit=${GIT_SHORT} .'
+                sh 'docker build -t ${IMAGE}:${VERSION} --build-arg APP_VERSION=${VERSION} --label git-commit=${GIT_SHORT} .'
             }
         }
 
