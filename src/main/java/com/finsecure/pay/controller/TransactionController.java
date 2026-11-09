@@ -33,7 +33,7 @@ public class TransactionController {
     @PostMapping("/validate")
     public ResponseEntity<ValidationResult> validate(@RequestBody Transaction tx) {
         ValidationResult result = validator.validate(tx);
-        HttpStatus status = result.valid() ? HttpStatus.OK : HttpStatus.UNPROCESSABLE_ENTITY;
+        HttpStatus status = result.valid() ? HttpStatus.OK : HttpStatus.UNPROCESSABLE_CONTENT;
         return ResponseEntity.status(status).body(result);
     }
 }

@@ -46,7 +46,7 @@ class TransactionControllerTest {
                  "sourceAccount":"AE070331234567890123456","destinationAccount":"AE070331234567890123456"}
                 """;
         mvc.perform(post("/validate").contentType(MediaType.APPLICATION_JSON).content(body))
-                .andExpect(status().isUnprocessableEntity())
+                .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.valid").value(false))
                 .andExpect(jsonPath("$.errors.length()").value(3));
     }
