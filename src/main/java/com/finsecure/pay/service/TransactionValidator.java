@@ -48,7 +48,7 @@ public class TransactionValidator {
             errors.add("amount must be greater than zero");
             return;
         }
-        if (amount.compareTo(props.maxAmount()) > 0) {
+        if (amount.compareTo(props.maxAmount()) >= 0) {
             errors.add("amount exceeds the limit of " + props.maxAmount());
         }
         if (amount.scale() > 2) {
