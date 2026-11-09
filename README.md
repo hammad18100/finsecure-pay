@@ -35,6 +35,24 @@ docker run -p 8080:8080 finsecure-pay:dev
 | `k8s/` | Namespace, ConfigMap, Deployment (2 replicas, probes), Service |
 | `monitoring/` | Prometheus, Alertmanager, Grafana, Loki, Fluent Bit, exporters (`kubectl apply -k monitoring/`) |
 | `scripts/traffic.sh` | Sends normal or attack traffic to trigger the invalid-rate alert |
+| `infra/` | kind cluster config, Jenkins image and config as code, Docker Compose for Jenkins/SonarQube/Mailpit, deployer RBAC |
+
+## Local setup
+
+Everything runs on one machine: a kind cluster, a registry with login, and Jenkins, SonarQube and Mailpit in Docker Compose. Files are in `infra/`.
+
+1. Put these files in `infra/secrets/` (git-ignored): `jenkins_admin_password`, `registry_username`, `registry_password`, `htpasswd` (from `htpasswd -B`), `kubeconfig` (for the `jenkins-deployer` service account), `sonar_token`.
+2. Cluster and registry:
+   ```bash
+   kind create cluster --config infra/kind-config.yaml
+   docker run -d --name kind-registry --network kind -p 127.0.0.1:5001:5000 \
+     -v "$PWD/infra/secrets/htpasswd:/auth/htpasswd:ro" -e REGISTRY_AUTH=htpasswd \
+     -e REGISTRY_AUTH_HTPASSWD_REALM=FinSecure -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd registry:2
+   # on the node, map localhost:5001 to http://kind-registry:5000 in /etc/containerd/certs.d/localhost:5001/hosts.toml
+   kubectl apply -f k8s/namespace.yaml -f infra/jenkins-rbac.yaml
+   ```
+3. CI tools: `docker volume create m2 && docker volume create trivy-cache && docker compose -f infra/docker-compose.yml up -d --build`. Jenkins (127.0.0.1:8090) is configured by `infra/jenkins/casc/jenkins.yaml` and polls this repo every minute.
+4. Monitoring: `kubectl apply -k monitoring/` (Grafana on :30030, Prometheus on :30090).
 
 ## Pipeline
 

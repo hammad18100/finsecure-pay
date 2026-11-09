@@ -1,0 +1,72 @@
+name: finsecure-ci
+
+services:
+  jenkins:
+    build: ./jenkins
+    image: finsecure-jenkins:1.0
+    container_name: jenkins
+    user: root
+    ports:
+      - "127.0.0.1:8090:8080"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - ./jenkins/casc:/var/jenkins_home/casc:ro
+      - ..:/repo:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - m2:/root/.m2
+      - trivy-cache:/root/.cache
+    secrets:
+      - jenkins_admin_password
+      - registry_username
+      - registry_password
+      - kubeconfig
+      - sonar_token
+    networks: [ci, kind]
+    restart: unless-stopped
+
+  sonarqube:
+    image: sonarqube:25.10.0.114319-community
+    container_name: sonarqube
+    ports:
+      - "127.0.0.1:9000:9000"
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    volumes:
+      - sonar_data:/opt/sonarqube/data
+      - sonar_extensions:/opt/sonarqube/extensions
+    networks: [ci]
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    container_name: mailpit
+    ports:
+      - "127.0.0.1:8025:8025"
+    networks: [ci, kind]
+    restart: unless-stopped
+
+secrets:
+  jenkins_admin_password:
+    file: ./secrets/jenkins_admin_password
+  registry_username:
+    file: ./secrets/registry_username
+  registry_password:
+    file: ./secrets/registry_password
+  kubeconfig:
+    file: ./secrets/kubeconfig
+  sonar_token:
+    file: ./secrets/sonar_token
+
+volumes:
+  sonar_data:
+  sonar_extensions:
+  jenkins_home:
+  m2:
+    external: true
+  trivy-cache:
+    external: true
+
+networks:
+  ci:
+  kind:
+    external: true

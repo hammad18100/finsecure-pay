@@ -1,0 +1,74 @@
+jenkins:
+  systemMessage: "FinSecure Pay CI/CD"
+  numExecutors: 2
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: admin
+          password: ${jenkins_admin_password}
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: true
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              scope: GLOBAL
+              id: registry-creds
+              description: Container registry push credentials
+              username: ${registry_username}
+              password: ${registry_password}
+          - string:
+              scope: GLOBAL
+              id: sonar-token
+              description: SonarQube analysis token
+              secret: ${sonar_token}
+          - file:
+              scope: GLOBAL
+              id: kubeconfig-deployer
+              description: Namespace-scoped deployer kubeconfig
+              fileName: kubeconfig
+              secretBytes: ${readFileBase64:/run/secrets/kubeconfig}
+
+unclassified:
+  location:
+    url: http://localhost:8090/
+    adminAddress: jenkins@finsecure.local
+  mailer:
+    smtpHost: mailpit
+    smtpPort: "1025"
+    defaultSuffix: "@finsecure.local"
+  email-ext:
+    mailAccount:
+      smtpHost: mailpit
+      smtpPort: "1025"
+    defaultRecipients: devops@finsecure.local
+    defaultContentType: text/html
+
+jobs:
+  - script: >
+      pipelineJob('finsecure-pay') {
+        description('Build, test, scan and deploy the FinSecure Pay API')
+        properties {
+          pipelineTriggers {
+            triggers {
+              pollSCM { scmpoll_spec('* * * * *') }
+            }
+          }
+        }
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote { url('file:///repo') }
+                branch('*/main')
+              }
+            }
+            scriptPath('Jenkinsfile')
+            lightweight(false)
+          }
+        }
+      }
