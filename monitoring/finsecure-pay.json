@@ -287,6 +287,10 @@
                 "value": null
               }
             ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
           }
         },
         "overrides": []
@@ -305,7 +309,9 @@
         {
           "refId": "A",
           "expr": "count by (image) (kube_pod_container_info{namespace=\"finsecure\",container=\"finsecure-pay\"})",
-          "legendFormat": "{{image}}"
+          "legendFormat": "{{image}}",
+          "instant": true,
+          "range": false
         }
       ]
     },

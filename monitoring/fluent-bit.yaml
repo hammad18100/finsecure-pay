@@ -59,7 +59,7 @@ data:
         Host        loki.monitoring.svc
         Port        3100
         Labels      job=fluent-bit, namespace=$kubernetes['namespace_name'], pod=$kubernetes['pod_name'], container=$kubernetes['container_name']
-        Remove_Keys kubernetes
+        Remove_Keys kubernetes, stream, _p, time
         Line_Format key_value
         Drop_Single_Key On
 ---
