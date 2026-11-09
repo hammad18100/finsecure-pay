@@ -1,12 +1,12 @@
 FROM eclipse-temurin:21-jre-alpine
 
 RUN apk upgrade --no-cache \
-    && addgroup -S app && adduser -S app -G app
+    && addgroup -S -g 10001 app && adduser -S -u 10001 app -G app
 
 WORKDIR /app
 COPY target/finsecure-pay.jar app.jar
 
-USER app
+USER 10001
 EXPOSE 8080
 
 ENV JAVA_OPTS="-XX:MaxRAMPercentage=75"
