@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.finsecure.pay.model.Transaction;
@@ -15,6 +17,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 @Service
 public class TransactionValidator {
 
+    private static final Logger log = LoggerFactory.getLogger(TransactionValidator.class);
     private static final Pattern ACCOUNT = Pattern.compile("^[A-Z]{2}\\d{2}[A-Z0-9]{10,30}$");
 
     private final ValidationProperties props;
@@ -33,6 +36,11 @@ public class TransactionValidator {
         checkAccounts(tx, errors);
 
         boolean valid = errors.isEmpty();
+        if (valid) {
+            log.info("Transaction {} accepted: {} {}", tx.transactionId(), tx.amount(), tx.currency());
+        } else {
+            log.warn("Transaction {} rejected: {}", tx.transactionId(), errors);
+        }
         registry.counter("transactions_validated", "result", valid ? "valid" : "invalid").increment();
         return new ValidationResult(tx.transactionId(), valid, errors);
     }
